@@ -16,9 +16,9 @@ Flyre is a pixel art space shooter with a skill tree, created for the Pygame com
 
 ## Features
 
-Skill tree to upgrade your ship
-Scoreboard for high scores
-5 different enemies, 1 boss, and 9 levels
-Original music by @Ploruto
-A purple button
+Skill tree to upgrade your ship\n
+Scoreboard for high scores\n
+5 different enemies, 1 boss, and 9 levels\n
+Original music by @Ploruto\n
+A purple button\n
 Tic-tac-toe game
