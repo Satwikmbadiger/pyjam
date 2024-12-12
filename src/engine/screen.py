@@ -28,10 +28,11 @@ class Screen:
         self.draw_surface = self.window
 
     def update_window(self):
-        pass
+        """Transfer the contents of the draw_surface to the window.
+         Called every frame before pygame.display.flip()."""
 
     def fixup_mouse_input(self, event):
-        pass
+        """Fix the mouse events to take any resizing into account."""
 
     def _biggest_screen_available(self):
         return pygame.display.list_modes()[0]
@@ -109,6 +110,13 @@ class BlackBordersScreen(Screen):
 
 
 class ExtendFieldOfViewScreen(Screen):
+    """
+    A type of screen that scales only by an interger multiple,
+    but the usualy black border space is left to the application to draw on to.
+
+    The draw surface always covers the whole screen and one of its dimensions
+    is at least less than 2x the prefered_size.
+    """
 
     def __init__(self, prefered_size):
         self.prefered_size = prefered_size

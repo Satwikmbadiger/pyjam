@@ -55,6 +55,11 @@ class Object:
         return pygame.Rect(self.pos, self.size)
 
     def logic(self, state):
+        """Overwrite this to update the object every frame.
+
+        Args:
+            state (State): Current state of the app
+        """
 
         self.pos += self.vel
 
@@ -73,12 +78,25 @@ class Object:
         pass
 
     def on_death(self, state):
-        pass
+        """Overwrite this to have a logic when the object dies.
+
+        Args:
+            state (State): Current state of the app.
+        """
 
     def resize(self, old, new):
-        pass
+        """Called every time the window resizes.
+
+        This should not have any impoact on position/speed,
+        as they should not depend on the window size. Instead
+        this should handle the different sprite sizes.
+        Args:
+            old (pygame.Vector2): previous size of the window
+            new (pygame.Vector2): actual size of the window
+        """
 
     def create_inputs(self):
+        """Return an Input object that handles events for the object."""
         return {}
 
 
@@ -135,6 +153,7 @@ class SpriteObject(Object):
         )
 
     def sprite_to_screen(self, pos):
+        """Convert a position in the sprite to its world coordinates."""
         pos = (
             pygame.Vector2(pos)
             + (0.5, 0.5)  # To get the center of the pixel
@@ -147,6 +166,7 @@ class SpriteObject(Object):
 
 
 class Entity(SpriteObject):
+    """An object with heath and a sprite."""
 
     INVICIBILITY_DURATION = 0
     INITIAL_LIFE = 1000

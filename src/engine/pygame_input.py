@@ -19,6 +19,11 @@ version = "1.0"
 
 
 def clamp(x, mini, maxi):
+    """
+    Clamp the value of x between mini and maxi.
+
+    If mini > maxi, just return x.
+    """
 
     if maxi < mini:
         return x
@@ -30,8 +35,14 @@ def clamp(x, mini, maxi):
 
 
 class ButtonInput:
+    """Base class for all boolean/button inputs."""
 
     def match(self, event) -> bool:
+        """
+        Whether the event corresponds to this button.
+
+        This method must be overridden by all subclasses.
+        """
         raise NotImplementedError
 
     def update(self, event):
@@ -40,29 +51,35 @@ class ButtonInput:
         return None
 
     def pressed(self, event) -> bool:
+        """Whether a matching event is a press or a release"""
 
         raise NotImplementedError
 
 
 @dataclass(frozen=True)
 class KeyPress(ButtonInput):
+    """Represent a single key."""
 
     key: int
 
     def match(self, event):
+        """Whether the event corresponds to this key press or release."""
         return event.type in (pygame.KEYDOWN, pygame.KEYUP) and event.key == self.key
 
     def pressed(self, event) -> bool:
+        """Whether a matching event is a press or a release"""
         return event.type == pygame.KEYDOWN
 
 
 @dataclass(frozen=True)
 class JoyButton(ButtonInput):
+    """Represent a joystick's button."""
 
     button: int
     joy_id: int = 0
 
     def match(self, event):
+        """Whether the event corresponds to this button."""
         return (
             event.type in (pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP)
             and event.joy == self.joy_id
@@ -70,18 +87,31 @@ class JoyButton(ButtonInput):
         )
 
     def pressed(self, event):
+        """Whether a matching event is a press or a release"""
         return event.type == pygame.JOYBUTTONDOWN
 
 
 @dataclass(frozen=True)
 class JoyAxisTrigger(ButtonInput):
+    """
+    A joystick axis considered like a button.
+
+    This is useful for fire triggers at the back of a gamepad for instance,
+    where knowing if it is pressed enough is the only thing that matters.
+
+    If above is True, the button is pressed when the axis value is above the threshold
+    otherwise, when it is below.
+    """
 
     axis: int
     threshold: float = 0.5
     above: bool = True
+    """Whether the button is pressed when the value is above or below the threshold"""
     joy_id: int = 0
+    """The id used to initialise the joystick."""
 
     def match(self, event) -> bool:
+        """Whether the event corresponds to this button."""
         return (
             event.type == pygame.JOYAXISMOTION
             and event.joy == self.joy_id
@@ -89,6 +119,7 @@ class JoyAxisTrigger(ButtonInput):
         )
 
     def pressed(self, event) -> bool:
+        """Whether a matching event is a press or a release"""
         return self.above == (event.value > self.threshold)
 
 
@@ -104,10 +135,16 @@ class QuitEvent(ButtonInput):
 class JoyAxis:
     axis: int
     reversed: bool = False
+    """Whether the positive and negative should be reversed."""
     threshold: float = 0.2
+    """Any value of smaller magnitude will be considered as zero."""
     sensibility: float = 1.0
+    """Multiply the value by this amount. Useful if a joystick doesn't go all the way to +/-1"""
     joy_id: int = 0
+    """The id used to initialise the joystick."""
+
     def match(self, event):
+        """Whether the event corresponds to this axis."""
 
         return (
             event.type == pygame.JOYAXISMOTION
@@ -116,6 +153,7 @@ class JoyAxis:
         )
 
     def value(self, event):
+        """The value of a matching event."""
 
         if abs(event.value) < self.threshold:
             return 0
@@ -136,6 +174,11 @@ class RepeatCallback:
 
 class Button:
     def __init__(self, *keys):
+        """
+        A boolean input.
+
+        :param keys: any number of keycodes or ButtonInputs
+        """
 
         self._keys: Set[ButtonInput] = {
             KeyPress(key) if isinstance(key, int) else key for key in keys
@@ -152,7 +195,12 @@ class Button:
         self._repeat: Set[RepeatCallback] = set()
 
         self.last_press = float("-inf")
+        """Time since last release of the button"""
         self.press_time = 0
+        """
+        Time the button has been pressed.
+        If it isn't pressed, it is the duration of the last press.
+        """
         self.dt = 0  # time since last frame
 
     def _call_all(self, container):
@@ -160,6 +208,11 @@ class Button:
             f(self)
 
     def update(self, dt):
+        """
+        Trigger callbacks when needed and updates times.
+
+        Call this once per frame with the time elapsed since last frame.
+        """
 
         self.last_press += dt
         if self.pressed:
@@ -211,10 +264,12 @@ class Button:
 
     @property
     def pressed(self):
+        """Whether the button is actually pressed."""
         return sum(self._pressed.values(), 0) > 0
 
     @property
     def double_pressed(self):
+        """Whether the button was just double pressed"""
         return self.pressed and self.last_press < 0.1
 
     def always_call(self, callback):
@@ -230,10 +285,15 @@ class Button:
         self._on_double_press.add(callback)
 
     def on_press_repeated(self, callback, delay):
+        """
+        Call `callback` when the button is pressed and
+        every `delay` seconds while it is pressed.
+        """
 
         self._repeat.add(RepeatCallback(callback, delay))
 
     def remove(self, callback):
+        """Remove a callback from from everywhere it was registered."""
         if callback in self._always:
             self._always.remove(callback)
         if callback in self._on_press:
@@ -250,6 +310,18 @@ class Button:
 
 class Axis:
     def __init__(self, negative, positive, *axis, smooth=0.1):
+        """
+        An input axis taking values between -1 and 1.
+
+        If smooth is greater than 0, the keypress will not
+        produce hard 1 or -1 but will be interpolated to
+        be 1 or -1 after :smooth: seconds.
+
+        :param negative: keycode or list of keycodes
+        :param positive: keycode or list of keycodes
+        :param axis: any number of JoyAxis
+        :param smooth: Duration (in seconds) to smooth values
+        """
 
         if isinstance(negative, int):
             negative = [negative]
@@ -288,6 +360,7 @@ class Axis:
             self._callbacks.remove(callback)
 
     def update(self, dt):
+        """Trigger all callbacks and updates times"""
         if self._int_value != 0:
             # Nonzero check is okay as JoyAxis already count the threshold
             self.non_zero_time += dt
@@ -348,6 +421,7 @@ class Inputs(dict, Dict[str, Union[Button, Axis]]):
         self._last_time = _time.time()
 
     def trigger(self, events):
+        """Trigger all callbacks when needed"""
 
         # make sure we can iterate it multiple times
         events = list(events)

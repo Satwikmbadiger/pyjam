@@ -47,6 +47,14 @@ class GameState(MyState):
         inputs["pause"] = Button(pygame.K_p, JoyButton(JOY_Y), JoyButton(JOY_X))
         inputs["pause"].on_press(self.set_pause)
 
+        # def cheat(_):
+        #     self.lvl.skip = True
+        #     for en in self.get_all(Enemy):
+        #         en.alive = False
+        #
+        # inputs["cheat"] = Button(pygame.K_c)
+        # inputs["cheat"].on_press(cheat)
+
         return inputs
 
     def set_pause(self, *args):
@@ -177,15 +185,17 @@ class GameState(MyState):
                 "The game is better with a controller !",
                 "Have you seen my bullet ?",
                 "The Copy ship has the same bullets as yours. Including critical hits.",
-                "This game was made in one week for the Pygame Comunity Easter game jam.",
+                "This game was made in two week for the PyJam by HACC Club.",
+                "The song was composed was inspired from Amoung US",
+                "Song is actually a F tic tac toe 4.",
                 "Pandas will overrule snakes.",
                 "Optimisation is the root of all evil",
                 "Legend tells said that someone survived level 9.",
                 "You can beat some levels without shooting.",
                 "All planets are made with the use of deep-fold 'Pixel planet generator'.",
                 "The most used font is called Wellbutrin.",
-                "The cool looking bomb explosion was made by Will Tice. Check him out on itch.io!",
-                "The game name, 'AstroMess' was found one hour before the deadline.",
+                "The game is actually a roguelike.",
                 "Press M to mute all sounds.",
+                "",
             ]
         )

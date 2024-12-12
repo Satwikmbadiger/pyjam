@@ -136,6 +136,7 @@ class Animation:
         self.flip_x = flip_x
 
     def __len__(self):
+        """Number of frames for one full loop."""
         return self.frame_nb * self.frame_duration
 
     def logic(self):

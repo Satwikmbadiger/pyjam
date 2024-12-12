@@ -1,7 +1,6 @@
 __pycache__
-.envrc
+venv
 build/
 dist/
 *.spec
 *.egg-info
-.venv

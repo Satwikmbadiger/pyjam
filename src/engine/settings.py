@@ -8,6 +8,11 @@ from .constants import ASSETS_DIR
 
 
 class Settings:
+    """
+    A singleton for all the settings that can be saved and loaded from the disk.
+
+    Every attribute that is set in the __init__ will be saved and restored with :load: and :save:.
+    """
 
     _instance = None
     PATH = ASSETS_DIR / "settings.json"
@@ -37,14 +42,18 @@ class Settings:
         self.mute = False
 
     def load(self):
+        """(re)load the settings from the file. Called automatically on the first instance of Settings."""
 
         if self.PATH.exists():
             self.__dict__.update(json.loads(self.PATH.read_text()))
 
     def save(self):
+        """Save the settings to its file. This is not called automatically."""
+
         self.PATH.write_text(json.dumps(self.__dict__))
 
     def reset(self):
-        pass
+        """Reset the settings."""
+
 
 settings = Settings()

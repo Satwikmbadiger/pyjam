@@ -77,6 +77,7 @@ class ParticleSystem(set):
         self.fountains = []
 
     def logic(self):
+        """Update all the particle for the frame."""
 
         for fountain in self.fountains:
             fountain.logic(self)
@@ -90,6 +91,8 @@ class ParticleSystem(set):
         self.difference_update(dead)
 
     def draw(self, surf: pygame.Surface):
+        """Draw all the particles"""
+
         for particle in self:
             particle.draw(surf)
 
@@ -160,36 +163,56 @@ class Particle:
             self._p: P = particle
 
         def at(self, pos: VEC2D, angle: DEGREES = 0):
+            """
+            Set the initial conditions.
+
+            Args:
+                pos: 2D position in pixels
+                angle: initial target in degrees
+
+            Returns:
+                The particle being build.
+            """
 
             self._p.pos = Vector2(pos)
             self._p.angle = angle
             return self
 
         def velocity(self, speed: float, radial_velocity: DEGREES = 0):
+            """Speed is along the target, and radial_velocity is how fast this target changes.
 
+            Args:
+                speed: px/frame along the target
+                radial_velocity: degrees/frame of angle change
+            """
             self._p.speed = speed
             self._p.angle_vel = radial_velocity
             return self
 
         def constant_force(self, velocity: Vector2):
+            """Add the given velocity to the particle's postion every frame."""
 
             self._p.constant_force = velocity
             return self
 
         def acceleration(self, directional: float):
+            """Set the acceleration along the target and the angular acceleration"""
             self._p.acc = directional
             return self
 
         def inner_rotation(self, start: DEGREES, speed: DEGREES):
+            """Set the rotation of the particle. This does not affect its motion."""
             self._p.inner_rotation = start
             self._p.inner_rotation_speed = speed
             return self
 
         def sized(self, size: float):
+            """Set the radius of the particle."""
             self._p.size = size
             return self
 
         def living(self, lifespan: int):
+            """Set how many frames the particle will be alive."""
             self._p.lifespan = lifespan
             return self
 
@@ -219,6 +242,7 @@ class Particle:
             return self.anim(blink)
 
         def anim_bounce_rect(self, rect):
+            """Make the particle bounce inside of the rectangle."""
 
             rect = pygame.Rect(rect)
 
@@ -266,6 +290,7 @@ class Particle:
             return self.anim(bounce_size_and_shrink)
 
         def apply(self, func):
+            """Call a building function on the particle. Useful to factor parts of the build."""
             func(self)
             return self
 
@@ -278,6 +303,7 @@ class Particle:
     # Actual methods
 
     def logic(self):
+        """Update the attributes of the particle."""
 
         self.life_prop += 1 / self.lifespan
         self.speed += self.acc
@@ -322,6 +348,15 @@ class DrawnParticle(Particle):
             return self
 
         def anim_gradient_to(self, h0, s0, v0, h1, v1, s1):
+            """Animate the color of the particle in hsv space.
+
+            Animations of the transparency should come after this one
+            """
+
+            # h0, s0, v0, a = self._p.color.hsva
+            # h1 = h if h is not None else h0
+            # s1 = clamp(s) * 100 if s is not None else s0
+            # v1 = clamp(v) * 100 if v is not None else v0
 
             def gradient_to(particle):
                 p = 1 - particle.life_prop
@@ -371,6 +406,17 @@ class SquareParticle(DrawnParticle):
 
 class PolygonParticle(DrawnParticle):
     def __init__(self, vertices: int, color=None, vertex_step: int = 1):
+        """
+        A particle shaped in a regular polygon.
+        
+        Args:
+            vertices: number of vertices
+            color: 
+            vertex_step: order in which to draw the vertices.
+                This can be used to draw star shaped pattern.
+                Rhe order will be 1, 1+step, 1+2*step...
+                should be coprime with vertices.
+        """
 
         super().__init__(color)
         self.vertex_step = vertex_step
@@ -391,6 +437,12 @@ class PolygonParticle(DrawnParticle):
 
 class ShardParticle(DrawnParticle):
     def __init__(self, color=None, head=1, tail=3):
+        """A shard shaped particle, inspired from DaFluffyPtato.
+
+        The size of lateral size is given by the particle's size,
+        and :head: and :tail: are the length of the head and tail
+        compared to the side.
+        """
 
         super().__init__(color)
         self.tail = tail

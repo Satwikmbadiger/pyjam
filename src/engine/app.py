@@ -13,6 +13,15 @@ __all__ = ["App"]
 
 
 class App(StateMachine):
+    """
+    The app is the largest element in the game, as it contains everything else.
+
+    The purpose of the class is to:
+        - handle the main loop
+        - orchestrate the dance between the StateMachine, the Screen and the GFX
+
+    All the game logic and randering is done by the states themselves.
+    """
 
     NAME = GAME_NAME
     MAIN_APP: "App" = None
@@ -31,6 +40,8 @@ class App(StateMachine):
         super().__init__(initial_state)
 
     def run(self):
+        """The main loop of the app."""
+
         frame = 0
         start = time()
         while self.running:
@@ -71,9 +82,11 @@ class App(StateMachine):
 
     @classmethod
     def current_state(cls):
+        """Current state of the main app."""
         return cls.MAIN_APP.state
 
     def quit(self):
+        """Properly exit the app."""
 
         while self.stack:
             self.state = (StateOperations.POP, None)
@@ -86,13 +99,16 @@ class App(StateMachine):
 if __name__ == "__main__":
 
     class MyState(State):
-        BG_COLOR = "80a450"
+        BG_COLOR = "#60a450"
 
         def draw(self, gfx: GFX):
             super().draw(gfx)
 
-            gfx.rect(0, 0, 1, 1, "red", 1)
+            gfx.rect(0, 0, 1, 1, "blue", 1)
 
+            
+
+    
 
     pygame.init()
     App(MyState, ExtendFieldOfViewScreen((200, 100))).run()

@@ -97,9 +97,20 @@ class State:
         pass
 
     def script(self):
+        """Script must be a generator where each yield will correspond to a frame.
+
+        Useful to implement sequential logics.
+        """
         yield
 
     def logic(self):
+        """All the logic of the state happens here.
+
+        To change to an other state, you need to call any of:
+            - self.pop_state()
+            - self.push_state(new)
+            - self.replace_state(new)
+       """
         self.timer += 1
 
         self.update_bg()
@@ -161,6 +172,16 @@ class State:
     # State modifications
 
     def add(self, object: T) -> T:
+        """Add an object to the state.
+
+        Note that is is only added at the begining of the next frame.
+        This allows to add objects while modifying the list.
+
+        Returns:
+            The argument is returned , to allow creating,
+            adding and storing it in a variable in the same line.
+        """
+
         if self.add_object_lock:
             self.add_later.append(object)
         else:
@@ -191,12 +212,15 @@ class State:
     # State operations
 
     def pop_state(self, *_):
+        """Return to the previous state in the state stack."""
         self.next_state = (StateOperations.POP, None)
 
     def push_state(self, new: "State"):
+        """Add a state to the stack that will be switched to."""
         self.next_state = (StateOperations.PUSH, new)
 
     def replace_state(self, new: "State"):
+        """Replace the current state with an other one. Equivalent of a theoric pop then push."""
         self.next_state = (StateOperations.REPLACE, new)
 
     def push_state_callback(self, new: Type["State"], *args):
@@ -224,6 +248,7 @@ class StateMachine:
 
     @property
     def state(self) -> Union[State, None]:
+        """Current state. Setting to None terminates the last state."""
         if self.stack:
             return self.stack[-1]
         return None
